@@ -2,10 +2,27 @@
 require "optparse"
 require "fileutils"
 require "io/console"
+require "yaml"
 
 # TODO Find way to implement ck2 and eu4 mode
-backup_directory = "#{Dir.home}/Documents/backup_saves"
-save_directory = "#{Dir.home}/.local/share/Paradox Interactive/Europa Universalis IV/save games"
+config_file = "#{Dir.home}/.config/ssofterc.yaml"
+
+unless File.exist?(config_file)
+  File.open(config_file, File::RDWR | File::CREAT) do |f|
+    backup_directory = "#{Dir.home}/Documents/backup_saves"
+    save_directory = "#{Dir.home}/.local/share/Paradox Interactive/Europa Universalis IV/save games"
+    
+    default_config = { backup_directory: backup_directory,
+                       save_directory: save_directory }
+
+    f.write(YAML.dump(default_config))
+  end
+end
+
+config = YAML.load(File.read(config_file))
+
+backup_directory = config[:backup_directory]
+save_directory = config[:save_directory]
 
 option = nil
 OptionParser.new do |opts|
@@ -63,5 +80,5 @@ when :list
     exit(1) 
   end
 
-  Dir.foreach("#{backup_directory}") { |backup| puts File.basename(backup, ".eu4") unless backup == "." || backup == ".." }
+  Dir.foreach("#{backup_directory}") { |b| puts File.basename(b, ".eu4") unless b == "." || b == ".." }
 end
